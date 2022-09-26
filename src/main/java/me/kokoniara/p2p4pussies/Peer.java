@@ -1,9 +1,4 @@
-package org.example.network;
-
-import io.socket.client.IO;
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
-import org.ice4j.StackProperties;
+package me.kokoniara.p2p4pussies;
 
 import java.net.URISyntaxException;
 

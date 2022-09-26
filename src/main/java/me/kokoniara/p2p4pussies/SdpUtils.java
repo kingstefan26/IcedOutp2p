@@ -1,4 +1,4 @@
-package org.example.network;
+package me.kokoniara.p2p4pussies;
 
 
 import org.ice4j.Transport;

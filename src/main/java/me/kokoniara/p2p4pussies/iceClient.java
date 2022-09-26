@@ -1,4 +1,4 @@
-package org.example.network;
+package me.kokoniara.p2p4pussies;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -144,6 +144,7 @@ public class iceClient
             }
         });
 
+        // RIP THE DOmAIN
         signalChannel.start("cmdmac.xyz", 8080);
 //        signalChannel.sendSdp(localSdp);
 
@@ -192,54 +193,45 @@ public class iceClient
     }
 
     public void ayncKeepRecevice(DatagramSocket socket) {
-        new Thread(new Runnable()
-        {
-
-            public void run()
+        new Thread(() -> {
+            while (true)
             {
-                while (true)
+                try
                 {
-                    try
-                    {
-                        byte[] buf = new byte[1024];
-                        DatagramPacket packet = new DatagramPacket(buf,
-                                buf.length);
-                        socket.receive(packet);
-                        System.out.println(packet.getAddress() + ":" + packet.getPort() + " says: " + new String(packet.getData(), 0, packet.getLength()));
-                    }
-                    catch (IOException e)
-                    {
-                        e.printStackTrace();
-                    }
+                    byte[] buf = new byte[1024];
+                    DatagramPacket packet = new DatagramPacket(buf,
+                            buf.length);
+                    socket.receive(packet);
+                    System.out.println(packet.getAddress() + ":" + packet.getPort() + " says: " + new String(packet.getData(), 0, packet.getLength()));
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
                 }
             }
         }).start();
     }
 
     public void asyncKeepSend(DatagramSocket socket, SocketAddress remoteAddress) {
-        new Thread(new Runnable()
-        {
-            public void run()
-            {
-                while (true) {
-                    try
-                    {
+        new Thread(() -> {
+            while (true) {
+                try
+                {
 
-                        byte[] buf = ("hello " + String.valueOf(System.currentTimeMillis())).getBytes();
-                        DatagramPacket packet = new DatagramPacket(buf, buf.length);
-                        packet.setSocketAddress(remoteAddress);
-                        socket.send(packet);
+                    byte[] buf = ("hello " + String.valueOf(System.currentTimeMillis())).getBytes();
+                    DatagramPacket packet = new DatagramPacket(buf, buf.length);
+                    packet.setSocketAddress(remoteAddress);
+                    socket.send(packet);
 //                        System.out.println("keeSend");
-                    }
-                    catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
-                    try {
-                        Thread.sleep(10000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }).start();
