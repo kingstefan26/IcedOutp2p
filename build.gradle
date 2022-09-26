@@ -1,0 +1,32 @@
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.jitsi:ice4j:3.0-60-g28a23e1'
+    // https://mvnrepository.com/artifact/javax.sip/jain-sip-api
+    // https://mvnrepository.com/artifact/javax.sdp/nist-sdp
+    implementation 'javax.sdp:nist-sdp:1.0'
+// https://mvnrepository.com/artifact/io.socket/socket.io-client
+    implementation 'io.socket:socket.io-client:2.1.0'
+
+// https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
+    implementation 'org.apache.logging.log4j:log4j-core:2.16.0'
+    implementation 'org.apache.commons:commons-text:1.9'
+
+    compileOnly group: 'javax.sip', name: 'jain-sip-api', version: '1.2.1.4'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+    useJUnitPlatform()
+}
