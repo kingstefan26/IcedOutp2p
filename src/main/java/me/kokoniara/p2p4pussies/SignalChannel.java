@@ -34,7 +34,8 @@ public class SignalChannel {
     public void start(String host, int port) throws URISyntaxException {
 
         // fr i though homeboy leaked his ip but this is tencent cloud ip
-        final Socket socket = IO.socket("http://111.230.151.66:8080");
+//        final Socket socket = IO.socket("http://111.230.151.66:8080");
+        final Socket socket = IO.socket("http://" + host + ":" + port);
         socket.on(Socket.EVENT_CONNECT, args -> {
             //socket.emit("news", "hi");
 //                socket.disconnect();

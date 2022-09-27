@@ -1,34 +1,22 @@
 package me.kokoniara.p2p4pussies;
 
-import java.net.URISyntaxException;
 
-
-public class Peer
-{
+public class Peer {
 
     public void start() {
-        try
-        {
+        try {
 //            System.setProperty(StackProperties.DISABLE_IPv6, "true");
-            iceClient client = new iceClient(8888, "text");
+            IceClient client = new IceClient(8888, "text", new String[]{"192.168.1.38:3478"}, new String[]{"192.168.1.38:3478"});
             client.init();
             client.exchangeSdpWithPeer();
 
-        }
-        catch (Exception e)
-        {
+        } catch (Throwable e) {
             e.printStackTrace();
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
         }
 
     }
 
-    public void test() {
-
-    }
-
-    public static void main(String[] args) throws URISyntaxException {
+    public static void main(String[] args) {
         new Peer().start();
     }
 

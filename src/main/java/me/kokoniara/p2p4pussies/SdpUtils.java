@@ -7,6 +7,14 @@ import org.ice4j.ice.*;
 import org.ice4j.ice.sdp.CandidateAttribute;
 import org.ice4j.ice.sdp.IceSdpUtils;
 
+import java.util.*;
+
+
+import org.ice4j.*;
+import org.ice4j.ice.sdp.*;
+import org.opentelecoms.javax.sdp.*;
+import org.opentelecoms.javax.sdp.*;
+
 import javax.sdp.*;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -21,8 +29,7 @@ import java.util.Vector;
  *
  * @author Emil Ivov
  */
-public class SdpUtils
-{
+public class SdpUtils {
     /**
      * Creates a session description containing the streams from the specified
      * <tt>agent</tt> using dummy codecs. This method is unlikely to be of use
@@ -31,15 +38,12 @@ public class SdpUtils
      * attributes.
      *
      * @param agent the {@link org.ice4j.ice.Agent} we'd like to generate.
-     *
      * @return a {@link SessionDescription} representing <tt>agent</tt>'s
      * streams.
-     *
      * @throws Throwable on rainy days
      */
-    public static String createSDPDescription(Agent agent) throws Throwable
-    {
-        SdpFactory factory = SdpFactory.getInstance();
+    public static String createSDPDescription(Agent agent) throws Throwable {
+        SdpFactory factory = new NistSdpFactory();
         SessionDescription sdess = factory.createSessionDescription();
 
         IceSdpUtils.initSessionDescription(sdess, agent);
@@ -52,44 +56,38 @@ public class SdpUtils
      * and candidates specified in <tt>sdp</tt>
      *
      * @param localAgent the {@link org.ice4j.ice.Agent} that we'd like to configure.
-     *
-     * @param sdp the SDP string that the remote peer sent.
-     *
+     * @param sdp        the SDP string that the remote peer sent.
      * @throws Exception for all sorts of reasons.
      */
     @SuppressWarnings("unchecked") // jain-sdp legacy code.
     public static void parseSDP(Agent localAgent, String sdp)
-            throws Exception
-    {
-        SdpFactory factory = SdpFactory.getInstance();
+            throws Exception {
+        SdpFactory factory = new NistSdpFactory();
         SessionDescription sdess = factory.createSessionDescription(sdp);
 
-        for(IceMediaStream stream : localAgent.getStreams())
-        {
+        for (IceMediaStream stream : localAgent.getStreams()) {
             stream.setRemotePassword(sdess.getAttribute("ice-pwd"));
             stream.setRemoteUfrag(sdess.getAttribute("ice-ufrag"));
         }
 
         Connection globalConn = sdess.getConnection();
         String globalConnAddr = null;
-        if(globalConn != null)
+        if (globalConn != null)
             globalConnAddr = globalConn.getAddress();
 
         Vector<MediaDescription> mdescs = sdess.getMediaDescriptions(true);
 
-        for (MediaDescription desc : mdescs)
-        {
+        for (MediaDescription desc : mdescs) {
             String streamName = desc.getMedia().getMediaType();
 
             IceMediaStream stream = localAgent.getStream(streamName);
 
-            if(stream == null)
+            if (stream == null)
                 continue;
 
             Vector<Attribute> attributes = desc.getAttributes(true);
-            for( Attribute attribute : attributes)
-            {
-                if(!attribute.getName().equals(CandidateAttribute.NAME))
+            for (Attribute attribute : attributes) {
+                if (!attribute.getName().equals(CandidateAttribute.NAME))
                     continue;
 
                 parseCandidate(attribute, stream);
@@ -98,7 +96,7 @@ public class SdpUtils
             //set default candidates
             Connection streamConn = desc.getConnection();
             String streamConnAddr = null;
-            if(streamConn != null)
+            if (streamConn != null)
                 streamConnAddr = streamConn.getAddress();
             else
                 streamConnAddr = globalConnAddr;
@@ -124,8 +122,7 @@ public class SdpUtils
                     = rtpComponent.findRemoteCandidate(defaultRtpAddress);
             rtpComponent.setDefaultRemoteCandidate(defaultRtpCandidate);
 
-            if(rtcpComponent != null)
-            {
+            if (rtcpComponent != null) {
                 Candidate<?> defaultRtcpCandidate
                         = rtcpComponent.findRemoteCandidate(defaultRtcpAddress);
                 rtcpComponent.setDefaultRemoteCandidate(defaultRtcpCandidate);
@@ -137,27 +134,26 @@ public class SdpUtils
      * Parses the <tt>attribute</tt>.
      *
      * @param attribute the attribute that we need to parse.
-     * @param stream the {@link org.ice4j.ice.IceMediaStream} that the candidate is supposed
-     * to belong to.
-     *
+     * @param stream    the {@link org.ice4j.ice.IceMediaStream} that the candidate is supposed
+     *                  to belong to.
      * @return a newly created {@link org.ice4j.ice.RemoteCandidate} matching the
      * content of the specified <tt>attribute</tt> or <tt>null</tt> if the
      * candidate belonged to a component we don't have.
      */
-    private static RemoteCandidate parseCandidate(Attribute      attribute,
-                                                  IceMediaStream stream)
-    {
+    private static RemoteCandidate parseCandidate(Attribute attribute,
+                                                  IceMediaStream stream) {
         String value = null;
 
-        try{
+        try {
             value = attribute.getValue();
-        }catch (Throwable t){}//can't happen
+        } catch (Throwable t) {
+        }//can't happen
 
         StringTokenizer tokenizer = new StringTokenizer(value);
 
         //XXX add exception handling.
         String foundation = tokenizer.nextToken();
-        int componentID = Integer.parseInt( tokenizer.nextToken() );
+        int componentID = Integer.parseInt(tokenizer.nextToken());
         Transport transport = Transport.parse(tokenizer.nextToken());
         long priority = Long.parseLong(tokenizer.nextToken());
         String address = tokenizer.nextToken();
@@ -171,14 +167,13 @@ public class SdpUtils
 
         Component component = stream.getComponent(componentID);
 
-        if(component == null)
+        if (component == null)
             return null;
 
         // check if there's a related address property
 
         RemoteCandidate relatedCandidate = null;
-        if (tokenizer.countTokens() >= 4)
-        {
+        if (tokenizer.countTokens() >= 4) {
             tokenizer.nextToken(); // skip the raddr element
             String relatedAddr = tokenizer.nextToken();
             tokenizer.nextToken(); // skip the rport element
