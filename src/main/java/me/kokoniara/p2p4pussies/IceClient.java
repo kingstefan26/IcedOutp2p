@@ -254,12 +254,12 @@ public class IceClient {
 
     }
 
-    private Agent createAgent(int rtpPort, String streamName) throws Throwable {
+    private Agent createAgent(int rtpPort, String streamName) throws IOException {
         return createAgent(rtpPort, streamName, false);
     }
 
     private Agent createAgent(int rtpPort, String streamName,
-                              boolean isTrickling) throws Throwable {
+                              boolean isTrickling) throws IOException {
 
         long startTime = System.currentTimeMillis();
 
@@ -297,13 +297,13 @@ public class IceClient {
     }
 
     private IceMediaStream createStream(int rtpPort, String streamName,
-                                        Agent agent) throws Throwable {
+                                        Agent agent) throws IOException {
         long startTime = System.currentTimeMillis();
         IceMediaStream stream = agent.createMediaStream(streamName);
         // rtp
-        Component component = agent.createComponent(stream, rtpPort + 50,
-                rtpPort, rtpPort + 100, SELECTED_ONLY);
-
+        Component component = null;
+            component = agent.createComponent(stream, rtpPort + 50,
+                    rtpPort, rtpPort + 100, SELECTED_ONLY);
         long endTime = System.currentTimeMillis();
         System.out.println("Component Name:" + component.getName());
         System.out.println("RTP Component created in " + (endTime - startTime) + " ms");

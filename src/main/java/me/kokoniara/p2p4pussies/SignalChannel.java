@@ -4,6 +4,8 @@ package me.kokoniara.p2p4pussies;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 
@@ -31,23 +33,51 @@ public class SignalChannel {
 
     }
 
-    public void start(String host, int port) throws URISyntaxException {
+    public void close(){
+        socket.close();
+    }
+
+
+    private Socket socket;
+    public void start(String host) throws URISyntaxException {
 
         // fr i though homeboy leaked his ip but this is tencent cloud ip
 //        final Socket socket = IO.socket("http://111.230.151.66:8080");
-        final Socket socket = IO.socket("http://" + host + ":" + port);
-        socket.on(Socket.EVENT_CONNECT, args -> {
-            //socket.emit("news", "hi");
-//                socket.disconnect();
-            if (mSdp != null) {
-                sendSdp(mSdp);
+
+        System.out.println("YASS QUBNEEN LIZY SLAY");
+
+        socket = IO.socket( host);
+        System.out.println(socket);
+
+
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+
+            @Override
+            public void call(Object... args) {
+
+                socket.emit("intro");
             }
         });
+
+//        socket.on(Socket.EVENT_CONNECT, args -> {
+//
+//            System.out.println("connected to blutuf websockted sucesstuky");
+//            socket.emit("message", "hi");
+////            if (mSdp != null) {
+////                sendSdp(mSdp);
+////            }
+//        });
+
         socket.on(Socket.EVENT_DISCONNECT, args -> System.out.println("disconnect"));
 //        socket.on(Socket.EVENT_MESSAGE, objects -> {
 //            System.out.println("onmessage");
 //            System.out.println(objects[0]);
 //        });
+
+        socket.on("message", args -> {
+            System.out.println("onmessage");
+            System.out.println(args[0]);
+        });
         socket.on("onPeerSdp", objects -> {
             System.out.println("onPeerSdp");
             System.out.println(objects[0]);
