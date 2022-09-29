@@ -1,4 +1,4 @@
-package me.kokoniara.p2p4pussies;
+package me.kokoniara.p2p4pussies.cupcakkebussylice;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -12,15 +12,25 @@ public class myChannel {
 
     private final String host;
     private Consumer<String> listener;
+    private String localsdp;
+    private Consumer<String> sdpListner;
+
     private Socket mSocket;
 
-    public myChannel(String host) {
-        this.host = host;
-    }
 
+    /**
+     * @param host     The host we are connecting to
+     * @param listener only for tests, check if anything is comming tru the websocket
+     */
     public myChannel(String host, Consumer<String> listener) {
         this.host = host;
         this.listener = listener;
+    }
+
+    public myChannel(String host, String sdp, Consumer<String> sdpListner) {
+        this.host = host;
+        localsdp = sdp;
+        this.sdpListner = sdpListner;
     }
 
     /**
@@ -31,6 +41,7 @@ public class myChannel {
             mSocket = IO.socket(host);
             mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);
             mSocket.on("message", onSocketConnectionListener);
+            mSocket.on("onPeerSdp", onPeerSdp);
             mSocket.connect();
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -40,14 +51,14 @@ public class myChannel {
             while (!mSocket.connected()) {
                 //do nothing
             }
-            sendConnectData();
+//            sendConnectData();
         }).start();
     }
 
     /**
      * Send Data to connect to chat server
      */
-    public void sendConnectData() {
+    public void sendConnectData(String subject, String contents) {
 //        JSONObject msgToSend = new JSONObject();
 //        try {
 //            msgToSend.put("Type", 1);
@@ -56,7 +67,11 @@ public class myChannel {
 //        } catch (Exception e) {
 //            e.printStackTrace();
 //        }
-        mSocket.emit("message", "RIRI FLOPED");
+        mSocket.emit(subject, contents);
+    }
+
+    public void sendConnectData(String contents) {
+        mSocket.emit("message", contents);
     }
 
     /**
@@ -64,13 +79,20 @@ public class myChannel {
      */
     private final Emitter.Listener onConnectError = args -> {
 
-        if (mSocket != null) {
-            if (!mSocket.connected()) {
-                socketConnection();
-            }
+        if (mSocket != null && !mSocket.connected()) {
+            socketConnection();
         }
 
 
+    };
+
+
+    /**
+     * Lister for Peers sdp :)
+     */
+    private final Emitter.Listener onPeerSdp = args -> {
+        System.out.println("Recived peer sdp");
+        sdpListner.accept((String) args[0]);
     };
 
     /**
@@ -83,4 +105,17 @@ public class myChannel {
             listener.accept((String) args[0]);
         }
     };
+
+    public void sendSdp() {
+        JSONObject msgToSend = new JSONObject();
+        try {
+            msgToSend.put("sdp", localsdp);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        mSocket.emit("join", msgToSend);
+        System.out.println("localsdp sent to websocket server");
+    }
 }

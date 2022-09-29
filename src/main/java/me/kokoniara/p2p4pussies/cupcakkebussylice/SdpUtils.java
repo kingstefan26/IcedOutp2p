@@ -1,4 +1,4 @@
-package me.kokoniara.p2p4pussies;
+package me.kokoniara.p2p4pussies.cupcakkebussylice;
 
 
 import org.ice4j.Transport;
@@ -7,12 +7,6 @@ import org.ice4j.ice.*;
 import org.ice4j.ice.sdp.CandidateAttribute;
 import org.ice4j.ice.sdp.IceSdpUtils;
 
-import java.util.*;
-
-
-import org.ice4j.*;
-import org.ice4j.ice.sdp.*;
-import org.opentelecoms.javax.sdp.*;
 import org.opentelecoms.javax.sdp.*;
 
 import javax.sdp.*;

@@ -1,4 +1,4 @@
-package me.kokoniara.p2p4pussies;
+package me.kokoniara.p2p4pussies.cupcakkebussylice;
 
 
 import io.socket.client.IO;
