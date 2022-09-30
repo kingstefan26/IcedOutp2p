@@ -1,6 +1,7 @@
 package me.kokoniara.p2p4pussies.cupcakkebussylice;
 
 
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 
 public class Peer {
@@ -8,6 +9,14 @@ public class Peer {
         connect,
         receive,
         disconnected
+    }
+
+
+    public enum state {
+        IDLE,
+        CONNECTING,
+        CONNECTED,
+        ERROR
     }
 
     String[] turnServers = {};
@@ -18,10 +27,10 @@ public class Peer {
 
     IceClient client;
 
-    public void start() {
+    public void init() {
         System.setProperty("org.ice4j.ipv6.DISABLED", "true");
 
-        client = new IceClient(deafultConnectionPort, "text", stunServers, turnServers);
+        client = new IceClient(deafultConnectionPort, "data", stunServers, turnServers);
         try {
             client.init();
         } catch (Throwable e) {
@@ -32,37 +41,53 @@ public class Peer {
 
     }
 
+    public void connect(){
+        long start = System.currentTimeMillis();
+        long stop = System.currentTimeMillis();
+
+        client.exchangeSdpWithPeer();
+        
+        UdpConnectionHandeler handeler = new UdpConnectionHandeler(client.getRemotePeerSocketAddress(), client.getDatagramSocket(), emmitqueue, receiveCallBack, connectCallBack);
+        
+        handeler.startConnection();
+    }
 
 
-    public void setRemotespd(String sdp){
-        client.exchangeSdpWithPeer(sdp);
+
+    public void setRemotespd(String remotespd){
+        client.setRemoteSdp(remotespd);
     }
 
     public String getlocalsdp(){
         return client.getLocalSdp();
     }
 
+    LinkedBlockingQueue<String> emmitqueue = new LinkedBlockingQueue<>();
 
     public void emmit(String content){
-        client.emmit(content);
+        emmitqueue.add(content);
     }
 
 
     public void on(event event, Consumer<Object> callback){
         switch (event){
-            case connect -> {
-                client.setConnectCallBack(callback);
-            }
-            case receive -> {
-                client.setReceiveCallBack(callback);
-            }
-            case disconnected -> {
-                client.setDisconnectedCallBack(callback);
-            }
+            case connect:
+                this.connectCallBack = callback;
+            break;
+            case receive:
+                this.receiveCallBack = callback;
+            break;
+            case disconnected:
+                this.disconnectedCallBack = callback;
+            break;
         }
     }
 
+    Consumer<Object> receiveCallBack;
 
+    Consumer<Object> disconnectedCallBack;
+
+    Consumer<Object> connectCallBack;
 
 
 }

@@ -12,7 +12,6 @@ public class myChannel {
 
     private final String host;
     private Consumer<String> listener;
-    private String localsdp;
     private Consumer<String> sdpListner;
 
     private Socket mSocket;
@@ -24,13 +23,7 @@ public class myChannel {
      */
     public myChannel(String host, Consumer<String> listener) {
         this.host = host;
-        this.listener = listener;
-    }
-
-    public myChannel(String host, String sdp, Consumer<String> sdpListner) {
-        this.host = host;
-        localsdp = sdp;
-        this.sdpListner = sdpListner;
+        this.sdpListner = listener;
     }
 
     /**
@@ -106,7 +99,7 @@ public class myChannel {
         }
     };
 
-    public void sendSdp() {
+    public void sendSdp(String localsdp) {
         JSONObject msgToSend = new JSONObject();
         try {
             msgToSend.put("sdp", localsdp);
