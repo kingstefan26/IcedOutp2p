@@ -1,6 +1,6 @@
 package me.kokoniara.p2p4pussies;
 
-import me.kokoniara.p2p4pussies.cupcakkebussylice.myChannel;
+import me.kokoniara.p2p4pussies.websocket.myChannel;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +22,7 @@ class SignalChannelTest {
         myChannel channel = new myChannel("http://192.168.1.38:3000", (s) -> {
             expectedout[0] = s;
         });
-        channel.socketConnection();
+        channel.socketConnect();
 
 
         await().atMost(10, SECONDS).until(() -> expectedout[0] != null);

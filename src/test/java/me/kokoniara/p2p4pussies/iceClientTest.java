@@ -14,7 +14,7 @@ class iceClientTest {
 
     @BeforeEach
     void setup() {
-        iceClient = new IceClient(8888, "text", "http://192.168.1.38:3000", new String[]{"localhost:3478"}, new String[]{"localhost:3478"});
+        iceClient = new IceClient(8888, "text", new String[]{"localhost:3478"}, new String[]{"localhost:3478"});
     }
 
     @Test

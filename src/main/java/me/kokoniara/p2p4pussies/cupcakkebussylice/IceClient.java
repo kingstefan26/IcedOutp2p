@@ -9,6 +9,8 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ice4j.Transport;
@@ -22,7 +24,6 @@ import org.ice4j.ice.NominationStrategy;
 import org.ice4j.ice.RemoteCandidate;
 import org.ice4j.ice.harvest.StunCandidateHarvester;
 import org.ice4j.ice.harvest.TurnCandidateHarvester;
-import org.ice4j.pseudotcp.PseudoTCPBase;
 import org.ice4j.pseudotcp.PseudoTcpSocket;
 import org.ice4j.pseudotcp.PseudoTcpSocketFactory;
 import org.ice4j.security.LongTermCredential;
@@ -39,7 +40,6 @@ public class IceClient {
 
     private String remoteSdp;
 
-    private String websocketHost;
     private String[] turnServers;
 
     private String[] stunServers;
@@ -53,10 +53,26 @@ public class IceClient {
     private float keepAliveTimer;
 
 
-    public IceClient(int port, String streamName, String websocketHost, String[] stunServers, String[] turnServers) {
+    public void setConnectCallBack(Consumer<Object> connectCallBack) {
+        this.connectCallBack = connectCallBack;
+    }
+
+    public void setReceiveCallBack(Consumer<Object> receiveCallBack) {
+        this.receiveCallBack = receiveCallBack;
+    }
+
+    public void setDisconnectedCallBack(Consumer<Object> disconnectedCallBack) {
+        this.disconnectedCallBack = disconnectedCallBack;
+    }
+
+    Consumer<Object> connectCallBack;
+    Consumer<Object> receiveCallBack;
+    Consumer<Object> disconnectedCallBack;
+
+
+    public IceClient(int port, String streamName, String[] stunServers, String[] turnServers) {
         this.port = port;
         this.streamName = streamName;
-        this.websocketHost = websocketHost;
         this.turnServers = turnServers;
         this.stunServers = stunServers;
         this.listener = new IceProcessingListener();
@@ -89,6 +105,10 @@ public class IceClient {
         agent.setTa(10000);
 
         return SdpUtils.createSDPDescription(agent);
+    }
+
+    public String getLocalSdp() {
+        return localSdp;
     }
 
     String localSdp;
@@ -143,26 +163,22 @@ public class IceClient {
      * environment that we can exchange SDP with peer through signaling
      * server(SIP server)
      */
-    public void exchangeSdpWithPeer() {
+    public void exchangeSdpWithPeer(String remoteSdp) {
 
-        myChannel m = new myChannel(websocketHost, localSdp, (peerSdp -> {
 
-            this.remoteSdp = peerSdp;
-            try {
-                SdpUtils.parseSDP(agent, remoteSdp);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            try {
-                startConnect();
-                startChat(IceClient.this);
-                System.out.println("start chat");
-            } catch (Throwable e) {
-                e.printStackTrace();
-            }
-        }));
-        m.socketConnection();
-        m.sendSdp();
+        this.remoteSdp = remoteSdp;
+        try {
+            SdpUtils.parseSDP(agent, remoteSdp);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            startConnect();
+            startChat(IceClient.this);
+            System.out.println("start chat");
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
 
 
 //        SignalChannel signalChannel = new SignalChannel(localSdp);
@@ -224,6 +240,12 @@ public class IceClient {
     }
 
 
+
+    ConcurrentLinkedQueue<String> sendqueue = new ConcurrentLinkedQueue<>();
+    public void emmit(String content) {
+        sendqueue.add(content);
+    }
+
     public void startChat(IceClient client) {
 
         PseudoTcpSocketFactory fc = new PseudoTcpSocketFactory();
@@ -256,6 +278,7 @@ public class IceClient {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+
                 while (finalSocket.isConnected()) {
                     String data = null;
                     try {
@@ -265,6 +288,9 @@ public class IceClient {
                     }
 
                     if (data != null) {
+                        if(receiveCallBack != null) {
+                            receiveCallBack.accept(data);
+                        }
                         System.out.println("Data: " + data);
                     }
                 }
@@ -284,6 +310,15 @@ public class IceClient {
                 float timer = System.currentTimeMillis() + 500;
 
                 while (finalSocket.isConnected()) {
+                    try {
+                        String t = sendqueue.poll();
+                        if(t != null){
+                            out.write(t);
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
                     if(timer < System.currentTimeMillis()){
                         try {
                             out.write("KILL ME");

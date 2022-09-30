@@ -1,4 +1,4 @@
-package me.kokoniara.p2p4pussies.cupcakkebussylice;
+package me.kokoniara.p2p4pussies.websocket;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -36,7 +36,7 @@ public class myChannel {
     /**
      * chat socket connection methods
      */
-    public void socketConnection() {
+    public void socketConnect() {
         try {
             mSocket = IO.socket(host);
             mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);
@@ -80,7 +80,7 @@ public class myChannel {
     private final Emitter.Listener onConnectError = args -> {
 
         if (mSocket != null && !mSocket.connected()) {
-            socketConnection();
+            socketConnect();
         }
 
 

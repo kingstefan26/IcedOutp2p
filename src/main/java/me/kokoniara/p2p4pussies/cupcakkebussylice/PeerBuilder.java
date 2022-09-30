@@ -28,15 +28,9 @@ public class PeerBuilder {
         peer.stunServers = stunServers;
     }
 
-
     public void setDefaultConnectionPort(int port){
         peer.deafultConnectionPort = port;
     }
-
-    public void setWebSocketHost(String host){
-        peer.websockethost = host;
-    }
-
 
 
 }
